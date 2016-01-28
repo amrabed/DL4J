@@ -1,7 +1,8 @@
-package edu.vt.dl4j.examples.dbn;
+package edu.vt.dl4j.examples.dae;
 
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
@@ -11,21 +12,23 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 import edu.vt.dl4j.base.Data;
 import edu.vt.dl4j.base.Model;
-import edu.vt.dl4j.base.ModelParameters;
+import edu.vt.dl4j.base.Parameters;
 
 /**
- * Created by AmrAbed on Jan 20, 2016
+ * Example Model for Deep Auto Encoder
+ * 
+ * @author AmrAbed
  */
 public class DeepAutoEncoderModel extends Model
 {
 
-    public DeepAutoEncoderModel(Data data, ModelParameters parameters)
+    public DeepAutoEncoderModel(Parameters parameters, Data data)
     {
-	super(data, parameters);
+	super(parameters, data);
     }
 
     @Override
-    public Model configure()
+    protected MultiLayerConfiguration getConfiguration()
     {
 	final int[] hiddenLayerNodes = parameters.getHiddeLayerNodes();
 	final int nLayers = hiddenLayerNodes.length;
@@ -53,13 +56,11 @@ public class DeepAutoEncoderModel extends Model
 	    else
 	    {
 		final OutputLayer outputLayer = new OutputLayer.Builder(LossFunctions.LossFunction.RMSE_XENT)
-			.nIn(nIn).nOut(parameters.getInputSize()).build();
+			.nIn(nIn).nOut(parameters.getOutputSize()).build();
 		list.layer(nLayers - 1, outputLayer);
 	    }
 	}
-
-	configuration = list.pretrain(true).backprop(true).build();
-	return this;
+	return list.pretrain(true).backprop(true).build();
     }
 
     @Override

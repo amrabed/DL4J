@@ -25,44 +25,41 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 import edu.vt.dl4j.base.Data;
 import edu.vt.dl4j.base.Model;
-import edu.vt.dl4j.base.ModelParameters;
+import edu.vt.dl4j.base.Parameters;
+import edu.vt.dl4j.data.IrisData;
 
 /**
- * Created by AmrAbed on Jan 20, 2016
+ * Example Model for Deep Belief Network (DBN)
+ * 
+ * @author AmrAbed
  */
 public class DeepBeliefNetworkModel extends Model
 {
-    public DeepBeliefNetworkModel(Data data, ModelParameters parameters)
+    public DeepBeliefNetworkModel(Parameters parameters, Data data)
     {
-	super(data, parameters);
+	super(parameters, data);
     }
 
-    public DeepBeliefNetworkModel configure()
+    protected MultiLayerConfiguration getConfiguration()
     {
+	int hiddenLayerNodes = parameters.getHiddeLayerNodes()[0];
 	final RBM hiddenLayer = new RBM.Builder(RBM.HiddenUnit.RECTIFIED, RBM.VisibleUnit.GAUSSIAN)
-		.nIn(parameters.getInputSize()).nOut(3).weightInit(WeightInit.XAVIER).k(1).activation("relu")
-		.lossFunction(LossFunctions.LossFunction.RMSE_XENT).updater(Updater.ADAGRAD).dropOut(0.5).build();
+		.nIn(parameters.getInputSize()).nOut(hiddenLayerNodes).weightInit(WeightInit.XAVIER).k(1)
+		.activation("relu").lossFunction(LossFunctions.LossFunction.RMSE_XENT).updater(Updater.ADAGRAD)
+		.dropOut(0.5).build();
 
-	final OutputLayer outputLayer = new OutputLayer.Builder(LossFunctions.LossFunction.MCXENT).nIn(3)
+	final OutputLayer outputLayer = new OutputLayer.Builder(LossFunctions.LossFunction.MCXENT).nIn(hiddenLayerNodes)
 		.nOut(parameters.getOutputSize()).activation("softmax").build();
 
-	configuration = new NeuralNetConfiguration.Builder().seed(parameters.getSeed())
-		.iterations(parameters.getIterations()).learningRate(parameters.getLearningRate())
-		.optimizationAlgo(OptimizationAlgorithm.CONJUGATE_GRADIENT).l2(2e-4).regularization(true).momentum(0.9)
-		.useDropConnect(true).list(2).layer(0, hiddenLayer).layer(1, outputLayer).build();
-
-	return this;
+	return new NeuralNetConfiguration.Builder().seed(parameters.getSeed()).iterations(parameters.getIterations())
+		.learningRate(parameters.getLearningRate()).optimizationAlgo(OptimizationAlgorithm.CONJUGATE_GRADIENT)
+		.l2(2e-4).regularization(true).momentum(0.9).useDropConnect(true).list(2).layer(0, hiddenLayer)
+		.layer(1, outputLayer).build();
     }
 
     public DeepBeliefNetworkModel train()
     {
-	model.fit(((DeepBeliefNetworkIrisData) data).getTrainingData());
-
-	for (Layer layer : model.getLayers())
-	{
-	    final INDArray weights = layer.getParam(DefaultParamInitializer.WEIGHT_KEY);
-	    System.out.println("Weights: " + weights);
-	}
+	model.fit(((IrisData) data).getTrainingData());
 	return this;
 
     }
@@ -70,7 +67,7 @@ public class DeepBeliefNetworkModel extends Model
     @SuppressWarnings("rawtypes")
     public DeepBeliefNetworkModel evaluate()
     {
-	final DataSet testingData = ((DeepBeliefNetworkIrisData) data).getTestingData();
+	final DataSet testingData = ((IrisData) data).getTestingData();
 
 	final Evaluation evaluation = new Evaluation(parameters.getOutputSize());
 	for (int j = 0; j < 2; j++)
@@ -90,7 +87,16 @@ public class DeepBeliefNetworkModel extends Model
 	return this;
     }
 
-    public void print()
+    public Model print()
+    {
+	for (Layer layer : model.getLayers())
+	{
+	    System.out.println("Weights: " + layer.getParam(DefaultParamInitializer.WEIGHT_KEY));
+	}
+	return this;
+    }
+
+    public void xyz()
     {
 	try (final DataOutputStream out = new DataOutputStream(Files.newOutputStream(Paths.get("coefficients.bin"))))
 	{

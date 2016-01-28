@@ -3,29 +3,30 @@ package edu.vt.dl4j.base;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 
 /**
- * Created by AmrAbed on Jan 20, 2016
+ * Abstract class for Data used by model
+ * 
+ * @author AmrAbed
  */
 public abstract class Data
 {
-    protected final int batchSize, nSamples, trainingDataSize, seed;
-
+    protected final int seed;
+    
     protected DataSetIterator iterator;
 
-    public Data(int batchSize, int nSamples, int trainingDataSize, int seed)
+    public Data(int seed)
     {
-	this.batchSize = batchSize;
-	this.nSamples = nSamples;
-	this.trainingDataSize = trainingDataSize;
 	this.seed = seed;
     }
-
+    
     public abstract Data load();
 
-    public abstract Data split();
-
+    public Data split(int trainingDataSize)
+    {
+	return this;
+    }
+    
     public DataSetIterator getIterator()
     {
 	return iterator;
     }
-
 }

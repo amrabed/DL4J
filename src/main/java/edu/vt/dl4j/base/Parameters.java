@@ -1,6 +1,13 @@
 package edu.vt.dl4j.base;
 
-public class ModelParameters
+/**
+ * Hyper-parameters used for Model Configuration
+ * 
+ * @author AmrAbed
+ *
+ */
+@SuppressWarnings("unchecked")
+public class Parameters
 {
     private int seed;
     private int inputSize;
@@ -15,10 +22,10 @@ public class ModelParameters
 	return seed;
     }
 
-    public ModelParameters setSeed(int seed)
+    public <T extends Parameters> T setSeed(int seed)
     {
 	this.seed = seed;
-	return this;
+	return (T) this;
     }
 
     public int getInputSize()
@@ -26,10 +33,10 @@ public class ModelParameters
 	return inputSize;
     }
 
-    public ModelParameters setInputSize(int inputSize)
+    public <T extends Parameters> T setInputSize(int inputSize)
     {
 	this.inputSize = inputSize;
-	return this;
+	return (T) this;
    }
 
     public int getOutputSize()
@@ -37,10 +44,10 @@ public class ModelParameters
 	return outputSize;
     }
 
-    public ModelParameters setOutputSize(int outputSize)
+    public <T extends Parameters> T setOutputSize(int outputSize)
     {
 	this.outputSize = outputSize;
-	return this;
+	return (T) this;
    }
 
     public int getIterations()
@@ -48,10 +55,10 @@ public class ModelParameters
 	return iterations;
     }
 
-    public ModelParameters setIterations(int iterations)
+    public <T extends Parameters> T setIterations(int iterations)
     {
 	this.iterations = iterations;
-	return this;
+	return (T) this;
    }
 
     public double getLearningRate()
@@ -59,10 +66,10 @@ public class ModelParameters
 	return learningRate;
     }
 
-    public ModelParameters setLearningRate(double learningRate)
+    public <T extends Parameters> T setLearningRate(double learningRate)
     {
 	this.learningRate = learningRate;
-	return this;
+	return (T) this;
    }
 
     public int getListenerFrequency()
@@ -70,10 +77,10 @@ public class ModelParameters
 	return listenerFrequency;
     }
 
-    public ModelParameters setListenerFrequency(int listenerFrequency)
+    public <T extends Parameters> T setListenerFrequency(int listenerFrequency)
     {
 	this.listenerFrequency = listenerFrequency;
-	return this;
+	return (T) this;
     }
 
     public int[] getHiddeLayerNodes()
@@ -81,10 +88,9 @@ public class ModelParameters
 	return hiddeLayerNodes;
     }
 
-    public ModelParameters setHiddeLayerNodes(int hiddeLayerNodes[])
+    public <T extends Parameters> T setHiddeLayerNodes(int hiddeLayerNodes[])
     {
 	this.hiddeLayerNodes = hiddeLayerNodes;
-	return this;
+	return (T) this;
     }
-
 }

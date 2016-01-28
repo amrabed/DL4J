@@ -10,6 +10,7 @@ import java.util.Map;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
@@ -21,26 +22,26 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 import edu.vt.dl4j.base.Data;
 import edu.vt.dl4j.base.Model;
-import edu.vt.dl4j.base.ModelParameters;
+import edu.vt.dl4j.base.Parameters;
+import edu.vt.dl4j.data.MnistData;
 import edu.vt.dl4j.tools.MnistVisualizer;
 
 /**
- * Created by AmrAbed on Jan 20, 2016
+ * Example model for Anomaly Detection
+ * 
+ * @author AmrAbed
  */
 public class AnomalyDetectionModel extends Model
 {
-    private final AnomalyDetectionData data;
-
-    public AnomalyDetectionModel(Data data, ModelParameters parameters)
+    public AnomalyDetectionModel(Parameters parameters, Data data)
     {
-	super(data, parameters);
-	this.data = (AnomalyDetectionData) data;
+	super(parameters, data);
     }
 
     @Override
-    public Model configure()
+    protected MultiLayerConfiguration getConfiguration()
     {
-	configuration = new NeuralNetConfiguration.Builder().seed(parameters.getSeed()).iterations(parameters.getIterations())
+	return new NeuralNetConfiguration.Builder().seed(parameters.getSeed()).iterations(parameters.getIterations())
 		.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).learningRate(parameters.getLearningRate()).l2(0.001)
 		.list(4)
 		.layer(0,
@@ -57,8 +58,6 @@ public class AnomalyDetectionModel extends Model
 				.updater(Updater.ADAGRAD).activation("relu")
 				.lossFunction(LossFunctions.LossFunction.MSE).build())
 		.pretrain(false).backprop(true).build();
-
-	return this;
     }
 
     @Override
@@ -67,7 +66,7 @@ public class AnomalyDetectionModel extends Model
 	int nEpochs = 30;
 	for (int epoch = 0; epoch < nEpochs; epoch++)
 	{
-	    for (INDArray current : ((AnomalyDetectionData) data).getTrainingFeatures())
+	    for (INDArray current : ((MnistData) data).getTrainingFeatures())
 	    {
 		model.fit(current, current);
 	    }
@@ -79,6 +78,7 @@ public class AnomalyDetectionModel extends Model
     @Override
     public Model evaluate()
     {
+	final MnistData data = (MnistData) this.data;
 	final Map<Integer, List<Triple<Double, Integer, INDArray>>> listsByDigit = new HashMap<>();
 	for (int i = 0; i < 10; i++)
 	{
@@ -101,7 +101,7 @@ public class AnomalyDetectionModel extends Model
 	}
 
 	// Sort data by score, separately for each digit
-	Comparator<Triple<Double, Integer, INDArray>> c = new Comparator<Triple<Double, Integer, INDArray>>()
+	final Comparator<Triple<Double, Integer, INDArray>> comparator = new Comparator<Triple<Double, Integer, INDArray>>()
 	{
 	    @Override
 	    public int compare(Triple<Double, Integer, INDArray> o1, Triple<Double, Integer, INDArray> o2)
@@ -112,16 +112,16 @@ public class AnomalyDetectionModel extends Model
 
 	for (List<Triple<Double, Integer, INDArray>> list : listsByDigit.values())
 	{
-	    Collections.sort(list, c);
+	    Collections.sort(list, comparator);
 	}
 
 	// Select the 5 best and 5 worst numbers (by reconstruction error) for
 	// each digit
-	List<INDArray> best = new ArrayList<>(50);
-	List<INDArray> worst = new ArrayList<>(50);
+	final List<INDArray> best = new ArrayList<>(50);
+	final List<INDArray> worst = new ArrayList<>(50);
 	for (int i = 0; i < 10; i++)
 	{
-	    List<Triple<Double, Integer, INDArray>> list = listsByDigit.get(i);
+	    final List<Triple<Double, Integer, INDArray>> list = listsByDigit.get(i);
 	    for (int j = 0; j < 5; j++)
 	    {
 		best.add(list.get(j).getRight());

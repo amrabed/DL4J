@@ -1,4 +1,4 @@
-package edu.vt.dl4j.examples.anomaly;
+package edu.vt.dl4j.data;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,25 +14,34 @@ import org.nd4j.linalg.factory.Nd4j;
 import edu.vt.dl4j.base.Data;
 
 /**
- * Created by AmrAbed on Jan 20, 2016
+ * MINST data
+ * 
+ * @author AmrAbed
  */
-public class AnomalyDetectionData extends Data
+public class MnistData extends Data
 {
+    protected final int batchSize, nSamples;
+    protected final boolean binarize;
+
+    private final List<DataSet> trainingData = new ArrayList<>();
     private final List<INDArray> trainingFeatures = new ArrayList<>();
     private final List<INDArray> testingFeatures = new ArrayList<>();
     private final List<INDArray> testingLabels = new ArrayList<>();
 
-    public AnomalyDetectionData(int batchSize, int nSamples, int trainingDataSize, int seed)
+    public MnistData(int seed, int batchSize, int nSamples, boolean binarize)
     {
-	super(batchSize, nSamples, trainingDataSize, seed);
+	super(seed);
+	this.batchSize = batchSize;
+	this.nSamples = nSamples;
+	this.binarize = binarize;
     }
 
     @Override
-    public Data load()
+    public MnistData load()
     {
 	try
 	{
-	    iterator = new MnistDataSetIterator(batchSize, nSamples, false);
+	    iterator = new MnistDataSetIterator(batchSize, nSamples, binarize);
 	}
 	catch (IOException e)
 	{
@@ -42,36 +51,36 @@ public class AnomalyDetectionData extends Data
     }
 
     @Override
-    public Data split()
+    public MnistData split(int trainingDataSize)
     {
 	while (iterator.hasNext())
 	{
-	    final DataSet dataSet = iterator.next();
-	    SplitTestAndTrain split = dataSet.splitTestAndTrain(trainingDataSize, new Random(seed));
+	    final SplitTestAndTrain split = iterator.next().splitTestAndTrain(trainingDataSize, new Random(seed));
+	    trainingData.add(split.getTrain());
 	    trainingFeatures.add(split.getTrain().getFeatureMatrix());
-	    
-	    final DataSet testingData = split.getTest();
-	    testingFeatures.add(testingData.getFeatureMatrix());
-	    
-	    final INDArray indexes = Nd4j.argMax(testingData.getLabels(), 1); 
-	    testingLabels.add(indexes);
+	    testingFeatures.add(split.getTest().getFeatureMatrix());
+	    testingLabels.add(Nd4j.argMax(split.getTest().getLabels(), 1));
 	}
-
 	return this;
+    }
+
+    public List<DataSet> getTrainingData()
+    {
+	return trainingData;
     }
 
     public List<INDArray> getTrainingFeatures()
     {
-        return trainingFeatures;
+	return trainingFeatures;
     }
 
     public List<INDArray> getTestingFeatures()
     {
-        return testingFeatures;
+	return testingFeatures;
     }
 
     public List<INDArray> getTestingLabels()
     {
-        return testingLabels;
+	return testingLabels;
     }
 }
